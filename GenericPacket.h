@@ -2,22 +2,24 @@
 #include <cstdint>
 #include <QByteArray>
 
+template<typename S = std::uint32_t, typename T = std::uint32_t>
 class GenericPacket
 {
 public:
-	template<typename T>
+	template<typename U>
 	struct NamedType
 	{
 		explicit NamedType(T value) : value(value) {}
 		inline operator T() { return value; }
 		T value;
 	};
-	using Size = NamedType<std::uint32_t>;
-	using Type = NamedType<std::uint32_t>;
+	using Size = NamedType<S>;
+	using Type = NamedType<T>;
 
 	class Header
 	{
 	public:
+		Header() = default;
 		Header(Size size, Type type);
 
 		/** \brief Check if data has a complete header */
@@ -35,8 +37,8 @@ public:
 		static Header extractFromData(QByteArray &packet);
 
 		/** \brief Size of payload */
-		std::uint32_t size() const { return m_size; }
-		std::uint32_t type() const { return m_type; }
+		S size() const { return m_size; }
+		T type() const { return m_type; }
 
 		Header &setSize(Size size);
 		Header &setType(Type type);
@@ -47,8 +49,8 @@ public:
 		explicit Header(const QByteArray &data);
 		explicit Header(QByteArray &data);
 
-		std::uint32_t m_size = 0;
-		std::uint32_t m_type = 0;
+		S m_size = 0;
+		T m_type = 0;
 	};
 
 	GenericPacket() = default;
@@ -86,3 +88,5 @@ private:
 	Header m_header;
 	QByteArray m_payload;
 };
+
+#include "GenericPacketT.cpp"
