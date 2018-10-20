@@ -38,18 +38,23 @@ namespace GenericPacketHelper
 	}
 
 #pragma pack(1)
-template<typename S, typename T>
-struct RawHeader
-{
-	S size;
-	T type;
-
-	static inline RawHeader fromData(const QByteArray &data)
+	template<typename S, typename T>
+	struct RawHeader
 	{
-		const RawHeader *header = reinterpret_cast<const RawHeader *>(data.constData());
-		return { ntoh(header->size), ntoh(header->type) };
-	}
-};
+		S size;
+		T type;
+
+		static inline RawHeader fromData(const QByteArray &data)
+		{
+			const RawHeader *header = reinterpret_cast<const RawHeader *>(data.constData());
+			return { ntoh(header->size), ntoh(header->type) };
+		}
+		static inline QByteArray toData(S size, T type)
+		{
+			RawHeader<S, T> raw{ hton(size), hton(type) };
+			return { reinterpret_cast<const char *>(&raw), sizeof(raw) };
+		}
+	};
 #pragma pack()
 }
 
@@ -103,11 +108,7 @@ typename GenericPacket<S, T>::Header &GenericPacket<S, T>::Header::setType(Type 
 template<typename S, typename T>
 QByteArray GenericPacket<S, T>::Header::toData() const
 {
-	GenericPacketHelper::RawHeader<S, T> raw{
-		GenericPacketHelper::hton(m_size),
-		GenericPacketHelper::hton(m_type),
-	};
-	return { reinterpret_cast<const char *>(&raw), sizeof(raw) };
+	return GenericPacketHelper::RawHeader<S, T>::toData(m_size, m_type);
 }
 
 template<typename S, typename T>
