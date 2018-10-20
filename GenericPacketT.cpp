@@ -202,6 +202,8 @@ GenericPacket<S, T>::GenericPacket(QByteArray &data)
 	: m_header(Header::extractFromData(data)),
 	m_payload(data.mid(sizeof(GenericPacketHelper::RawHeader<S, T>), m_header.size()))
 {
+	/* Ideally the data should be moved and not copied, then removed, but sadly
+	 * there is no API for this: */
 	data.remove(0, sizeof(GenericPacketHelper::RawHeader<S, T>) + m_header.size());
 }
 

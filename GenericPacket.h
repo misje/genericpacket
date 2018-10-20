@@ -6,6 +6,8 @@ template<typename S = std::uint32_t, typename T = std::uint32_t>
 class GenericPacket
 {
 public:
+	/* Thin named type wrapper with explicit constructor and implicit casting
+	 * to integer used to distinguish integer arguments: */
 	template<typename U>
 	struct NamedType
 	{
@@ -22,7 +24,7 @@ public:
 		Header() = default;
 		Header(Size size, Type type);
 
-		/** \brief Check if data has a complete header */
+		/** \brief Check if data may contain a complete header */
 		static bool hasCompleteHeader(const QByteArray &data);
 
 		/** \brief Deep-copy a header from the given raw data

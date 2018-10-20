@@ -1,7 +1,7 @@
 # Generic packet
 
 There are heaps of serialisation libraries, but most are not self-delimiting or
-selv-describing. With stream-oriented protocols just serialising your message
+self-describing. With stream-oriented protocols just serialising your message
 isn't enough. At a bare minimum you need to know the length of the message you
 need to put together.
 
@@ -23,6 +23,7 @@ type to and from network byte order:
 
 ### Packing
 ```c++
+/* Use 16-bit for the payload size and 8-bit for the type field: */
 using Packet = GenericPacket<std::uint16_t, std::uint8_t>;
 
 socket.write(Packet{Packet::Type{42}, {"My beautiful message"}}.toData());
@@ -58,12 +59,19 @@ static bool GenericPacket::hasCompletePacket(const QByteArray &data);
 ```
 allows you to check a data array of arbitrary length to ensure that either
 - the header (the first *n* bytes) are present, or that
-- the whole packet, the header and the following bytes matching the header
-  *size* variable, is present in the raw data
+- the whole packet, the header and the following bytes matching the value of
+  the header *size* variable, is present in the raw data
+
+Note that there is no way of knowing whether the bytes actually makes up a
+valid packet. If you try to unpack rubbish data it may or may not succeed
+depending on the size of the packet and the value of the size variable. If you
+cannot trust the source (you never should, really), be sure to validate your
+payload or use a checksum. You also ought to discard data with a size way above
+your expectations, especially if you use 16 bit or 32 bit in the size field.
 
 Once you are sure that the raw data can contain a complete packet, you can
-either create a `GenericPacket` on a copy of the raw data or replace the
-relevant raw data with a packet:
+either create a `GenericPacket` on a copy of the raw data or move the relevant
+raw data into a packet:
 ```c++
 using Packet = GenericPacket<std::uint16_t, std::uint8_t>;
 const auto data = socket.readAll();
@@ -80,7 +88,7 @@ or similarly by removing the bytes:
 using Packet = GenericPacket<std::uint16_t, std::uint8_t>;
 while (Packet::hasCompletePacket(buffer))
 {
-	/* The 'buffer' does not longer contain whatever makes up 'packet': */
+	/* The 'buffer' does no longer contain whatever makes up 'packet': */
 	auto packet = Packet::extractFromData(buffer);
 	if (packet.header().type() != MyExpectedPacketType)
 		continue;
@@ -89,8 +97,8 @@ while (Packet::hasCompletePacket(buffer))
 }
 ```
 
-Beware that exceptions may be thrown if you attempt to parse an imcomplete
-packet. Specifially, if you try to construct a `Header`from raw data whose size
+Beware that exceptions may be thrown if you attempt to parse an incomplete
+packet. Specifically, if you try to construct a `Header`from raw data whose size
 is smaller than that of the header (the sum of the size of the data types used
 for *size* and *type*) a `std::range_error` is thrown:
 ```c++
@@ -110,6 +118,12 @@ Make sure the raw data actually contains
 GenericPacket GenericPacket::fromData(const QByteArray &data)
 /* or */
 GenericPacket GenericPacket::extractFromData(QByteArray &data)
-/* make sure that 'data' is large enough. Typically you do this by calling */
+/* make sure that 'data' is large enough. Typically you do this by calling
 GenericPacket::hasCompletePacket() beforehand */
 ```
+
+## Limitations
+This is a simple piece of code and it does not provide checksum, preambles etc.
+It is not sufficient if you cannot trust the integrity of your data (if the
+transport does not provide any validity guarantee) or if you don't always get a
+packet header at the beginning of your data stream.
