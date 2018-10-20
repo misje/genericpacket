@@ -84,6 +84,7 @@ public:
 private:
 	explicit GenericPacket(const QByteArray &packet);
 	explicit GenericPacket(QByteArray &packet);
+	void ensureSizeCanHoldPayload();
 
 	Header m_header;
 	QByteArray m_payload;

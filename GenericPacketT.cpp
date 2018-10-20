@@ -128,13 +128,7 @@ GenericPacket<S, T>::GenericPacket(Type type, const QByteArray &payload)
 	: m_header(Size(static_cast<S>(payload.size())), type),
 	m_payload(payload)
 {
-	if (static_cast<std::size_t>(m_payload.size()) > std::numeric_limits<S>::max())
-		throw std::range_error(QObject::tr("The datatype chosen to represent the "
-					"packet length in the header (maximum value %2) cannot hold the payload "
-					"size (%3)")
-				.arg(std::numeric_limits<S>::max())
-				.arg(m_payload.size())
-				.toStdString());
+	ensureSizeCanHoldPayload();
 }
 
 template<typename S, typename T>
@@ -142,13 +136,7 @@ GenericPacket<S, T>::GenericPacket(Type type, QByteArray &&payload)
 	: m_header(Size(static_cast<S>(payload.size())), type),
 	m_payload(std::move(payload))
 {
-	if (static_cast<std::size_t>(m_payload.size()) > std::numeric_limits<S>::max())
-		throw std::range_error(QObject::tr("The datatype chosen to represent the "
-					"packet length in the header (maximum value %2) cannot hold the payload "
-					"size (%3)")
-				.arg(std::numeric_limits<S>::max())
-				.arg(m_payload.size())
-				.toStdString());
+	ensureSizeCanHoldPayload();
 }
 
 template<typename S, typename T>
@@ -214,4 +202,16 @@ GenericPacket<S, T>::GenericPacket(QByteArray &data)
 	m_payload(data.mid(sizeof(GenericPacketHelper::RawHeader<S, T>), m_header.size()))
 {
 	data.remove(0, sizeof(GenericPacketHelper::RawHeader<S, T>) + m_header.size());
+}
+
+template<typename S, typename T>
+void GenericPacket<S, T>::ensureSizeCanHoldPayload()
+{
+	if (static_cast<std::size_t>(m_payload.size()) > std::numeric_limits<S>::max())
+		throw std::range_error(QObject::tr("The datatype chosen to represent the "
+					"packet length in the header (maximum value %2) cannot hold the payload "
+					"size (%3)")
+				.arg(std::numeric_limits<S>::max())
+				.arg(m_payload.size())
+				.toStdString());
 }
