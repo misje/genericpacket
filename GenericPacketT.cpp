@@ -70,7 +70,7 @@ GenericPacket<S, T>::Header::Header(Size size, Type type)
 template<typename S, typename T>
 bool GenericPacket<S, T>::Header::hasCompleteHeader(const QByteArray &data)
 {
-	return static_cast<std::size_t>(data.size()) >= sizeof(GenericPacketHelper::RawHeader<S, T>);
+	return static_cast<std::size_t>(data.size()) >= dataSize();
 }
 
 template<typename S, typename T>
@@ -112,6 +112,12 @@ QByteArray GenericPacket<S, T>::Header::toData() const
 }
 
 template<typename S, typename T>
+std::size_t GenericPacket<S, T>::Header::dataSize()
+{
+	return sizeof(GenericPacketHelper::RawHeader<S, T>);
+}
+
+template<typename S, typename T>
 GenericPacket<S, T>::Header::Header(const QByteArray &data)
 	: m_size(GenericPacketHelper::RawHeader<S, T>::fromData(data).size),
 	m_type(GenericPacketHelper::RawHeader<S, T>::fromData(data).type)
@@ -120,8 +126,11 @@ GenericPacket<S, T>::Header::Header(const QByteArray &data)
 
 template<typename S, typename T>
 GenericPacket<S, T>::Header::Header(QByteArray &data)
-	: Header(static_cast<const QByteArray &>(data.remove(0, sizeof(GenericPacketHelper::RawHeader<S, T>))))
+	: Header(static_cast<const QByteArray &>(data))
 {
+	/* Ideally the data should be moved and not copied, then removed, but sadly
+	 * there is no API for this: */
+	data.remove(0, dataSize());
 }
 
 template<typename S, typename T>
@@ -147,7 +156,7 @@ bool GenericPacket<S, T>::hasCompletePacket(const QByteArray &data)
 		Header::hasCompleteHeader(data) &&
 		/* Ensure that the data contains the whole payload, determined by the
 		 * size field in the header: */
-		data.size() - sizeof(GenericPacketHelper::RawHeader<S, T>) >= Header::fromData(data).size();
+		data.size() - Header::dataSize() >= Header::fromData(data).size();
 }
 
 template<typename S, typename T>
@@ -191,20 +200,26 @@ QByteArray GenericPacket<S, T>::toData() const
 }
 
 template<typename S, typename T>
+std::size_t GenericPacket<S, T>::dataSize() const
+{
+	return m_header.dataSize() + m_payload.size();
+}
+
+template<typename S, typename T>
 GenericPacket<S, T>::GenericPacket(const QByteArray &data)
 	: m_header(Header::fromData(data)),
-	m_payload(data.mid(sizeof(GenericPacketHelper::RawHeader<S, T>), m_header.size()))
+	m_payload(data.mid(Header::dataSize(), m_header.size()))
 {
 }
 
 template<typename S, typename T>
 GenericPacket<S, T>::GenericPacket(QByteArray &data)
 	: m_header(Header::extractFromData(data)),
-	m_payload(data.mid(sizeof(GenericPacketHelper::RawHeader<S, T>), m_header.size()))
+	m_payload(data.left(m_header.size()))
 {
 	/* Ideally the data should be moved and not copied, then removed, but sadly
 	 * there is no API for this: */
-	data.remove(0, sizeof(GenericPacketHelper::RawHeader<S, T>) + m_header.size());
+	data.remove(0, m_header.size());
 }
 
 template<typename S, typename T>

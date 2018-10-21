@@ -46,6 +46,7 @@ public:
 		Header &setType(Type type);
 
 		QByteArray toData() const;
+		static std::size_t dataSize();
 
 	private:
 		explicit Header(const QByteArray &data);
@@ -82,6 +83,7 @@ public:
 	GenericPacket &setPayload(QByteArray &&payload);
 
 	QByteArray toData() const;
+	std::size_t dataSize() const;
 
 private:
 	explicit GenericPacket(const QByteArray &packet);
