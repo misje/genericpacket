@@ -11,9 +11,9 @@ public:
 	template<typename U>
 	struct NamedType
 	{
-		explicit NamedType(T value) : value(value) {}
-		inline operator T() { return value; }
-		T value;
+		explicit NamedType(U value) : value(value) {}
+		inline operator U() { return value; }
+		U value;
 	};
 	using Size = NamedType<S>;
 	using Type = NamedType<T>;
