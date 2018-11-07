@@ -48,6 +48,9 @@ public:
 		QByteArray toData() const;
 		static std::size_t dataSize();
 
+		/** \brief The largest payload size the size type can hold */
+		static std::size_t maxSize();
+
 	private:
 		explicit Header(const QByteArray &data);
 		explicit Header(QByteArray &data);
