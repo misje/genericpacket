@@ -162,7 +162,7 @@ bool GenericPacket<S, T>::hasCompletePacket(const QByteArray &data)
 		Header::hasCompleteHeader(data) &&
 		/* Ensure that the data contains the whole payload, determined by the
 		 * size field in the header: */
-		data.size() - Header::dataSize() >= Header::fromData(data).size();
+		static_cast<std::size_t>(data.size()) - Header::dataSize() >= Header::fromData(data).size();
 }
 
 template<typename S, typename T>
@@ -208,7 +208,7 @@ QByteArray GenericPacket<S, T>::toData() const
 template<typename S, typename T>
 std::size_t GenericPacket<S, T>::dataSize() const
 {
-	return m_header.dataSize() + m_payload.size();
+	return m_header.dataSize() + static_cast<std::size_t>(m_payload.size());
 }
 
 template<typename S, typename T>
