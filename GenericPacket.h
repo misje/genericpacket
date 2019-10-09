@@ -11,7 +11,7 @@ public:
 	template<typename U>
 	struct NamedType
 	{
-		explicit NamedType(U value) : value(value) {}
+		explicit NamedType(U val) : value(val) {}
 		inline operator U() { return value; }
 		U value;
 	};
