@@ -234,7 +234,7 @@ GenericPacket<S, T>::Header::Header(QByteArray &data)
 {
 	/* Ideally the data should be moved and not copied, then removed, but sadly
 	 * there is no API for this: */
-	data.remove(0, dataSize());
+	data.remove(0, static_cast<int>(dataSize()));
 }
 
 template<typename S, typename T>
