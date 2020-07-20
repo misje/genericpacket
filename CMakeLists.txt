@@ -8,7 +8,6 @@ set(CMAKE_AUTOMOC ON)
 project(
 	genericpacket
 	VERSION 1.0.0
-	DESCRIPTION "Generic packet header-only template interface"
 	LANGUAGES CXX
 	)
 
