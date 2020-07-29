@@ -312,18 +312,18 @@ std::size_t GenericPacket<S, T>::dataSize() const
 template<typename S, typename T>
 GenericPacket<S, T>::GenericPacket(const QByteArray &data)
 	: m_header(Header::fromData(data)),
-	m_payload(data.mid(Header::dataSize(), m_header.size()))
+	m_payload(data.mid(static_cast<int>(Header::dataSize()), static_cast<int>(m_header.size())))
 {
 }
 
 template<typename S, typename T>
 GenericPacket<S, T>::GenericPacket(QByteArray &data)
 	: m_header(Header::extractFromData(data)),
-	m_payload(data.left(m_header.size()))
+	m_payload(data.left(static_cast<int>(m_header.size())))
 {
 	/* Ideally the data should be moved and not copied, then removed, but sadly
 	 * there is no API for this: */
-	data.remove(0, m_header.size());
+	data.remove(0, static_cast<int>(m_header.size()));
 }
 
 template<typename S, typename T>
